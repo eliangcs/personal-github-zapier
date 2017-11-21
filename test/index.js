@@ -50,7 +50,6 @@ describe('Github', () => {
 
     return appTester(App.searches.pr.operation.perform, bundle)
       .then((results) => {
-        console.log(results[0]);
         results.should.be.an.Array();
         results.length.should.eql(1);
         results[0].should.have.property('openText');
