@@ -1,0 +1,25 @@
+{
+  "name": "personal-github-zapier",
+  "version": "1.0.0",
+  "description": "A personal version of Github for Zapier.",
+  "repository": "BrunoBernardino/personal-github-zapier",
+  "homepage": "https://zapier.com/platform/public-invite/1663/04e64e2a900f1ee2ec9860fa710d4d53/",
+  "author": "Bruno Bernardino <me@brunobernardino.com>",
+  "license": "ISC",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha --recursive"
+  },
+  "engines": {
+    "node": "6.10.2",
+    "npm": ">=3.10.10"
+  },
+  "dependencies": {
+    "moment": "2.19.2",
+    "zapier-platform-core": "3.3.0"
+  },
+  "devDependencies": {
+    "mocha": "3.2.0",
+    "should": "11.2.1"
+  }
+}
