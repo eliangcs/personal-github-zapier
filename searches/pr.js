@@ -10,12 +10,22 @@ const getPRs = (z, bundle) => {
     body: {
       query: `
 query {
-  ClosedPRs:search(query:"is:closed is:pr assignee:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
+  ClosedPRs:search(query:"is:closed is:pr author:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
     nodes {
       ...pullRequestFields
     }
   }
-  OpenPRs:search(query:"is:open is:pr assignee:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
+  OpenPRs:search(query:"is:open is:pr author:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
+    nodes {
+      ...pullRequestFields
+    }
+  }
+  ReviewedPRs:search(query:"is:pr reviewed-by:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
+    nodes {
+      ...pullRequestFields
+    }
+  }
+  ReviewingPRs:search(query:"is:pr review-requested:${bundle.inputData.username} archived:false" type:ISSUE first:${limit}) {
     nodes {
       ...pullRequestFields
     }
@@ -25,6 +35,7 @@ query {
 fragment pullRequestFields on PullRequest {
   title
   url
+  createdAt
   updatedAt
 }
 `,
@@ -37,6 +48,8 @@ fragment pullRequestFields on PullRequest {
 
       const closed = [];
       const open = [];
+      const reviewed = [];
+      const reviewing = [];
 
       // Extract and parse into line breaks in markdown
       result.data.ClosedPRs.nodes.forEach((pullRequest) => {
@@ -47,20 +60,46 @@ fragment pullRequestFields on PullRequest {
           return;
         }
 
-        const markdown = `- [${pullRequest.title}](${pullRequest.url})`;
+        const markdown = `* ${pullRequest.title} ([PR](${pullRequest.url}))`;
         closed.push(markdown);
       });
 
       result.data.OpenPRs.nodes.forEach((pullRequest) => {
         const pullRequestDate = moment(pullRequest.updatedAt, 'YYYY-MM-DD[T]HH:mm:ss[Z]');
 
-        const markdown = `- [${pullRequest.title}](${pullRequest.url})`;
+        const markdown = `* ${pullRequest.title} ([PR](${pullRequest.url}))`;
         open.push(markdown);
+      });
+
+      result.data.ReviewedPRs.nodes.forEach((pullRequest) => {
+        const pullRequestDate = moment(pullRequest.updatedAt, 'YYYY-MM-DD[T]HH:mm:ss[Z]');
+
+        // If before past monday, skip.
+        if (pullRequestDate.diff(pastMonday) < 0) {
+          return;
+        }
+
+        const markdown = `* ${pullRequest.title} ([PR](${pullRequest.url}))`;
+        reviewed.push(markdown);
+      });
+
+      result.data.ReviewingPRs.nodes.forEach((pullRequest) => {
+        const pullRequestDate = moment(pullRequest.updatedAt, 'YYYY-MM-DD[T]HH:mm:ss[Z]');
+
+        // If before past monday, skip.
+        if (pullRequestDate.diff(pastMonday) < 0) {
+          return;
+        }
+
+        const markdown = `* ${pullRequest.title} ([PR](${pullRequest.url}))`;
+        reviewing.push(markdown);
       });
 
       return [{
         closedText: closed.join('\n'),
         openText: open.join('\n'),
+        reviewedText: reviewed.join('\n'),
+        reviewingText: reviewing.join('\n')
       }];
     });
 };
